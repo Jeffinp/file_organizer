@@ -19,6 +19,7 @@ Ele pega um diretório que você escolher e organiza tudo bonitinho em pastas se
 - **Webview**: Biblioteca que cria uma interface gráfica simples, usando HTML, CSS e JavaScript em uma janela desktop.
 
 > A interface é bem simples e intuitiva
+![Print da Interface](https://github.com/Jeffinp/file_organizer/blob/main/image/Screenshot_1051.webp)
 
 ## Como Usar
 
