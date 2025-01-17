@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizador de Arquivos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --primary-dark: #4338ca;
+            --success: #059669;
+            --error: #dc2626;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --hover-bg: #f1f5f9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #eef2ff, var(--background));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--text);
+        }
+
+        .container {
+            background: var(--surface);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+            width: 100%;
+            max-width: 36rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-light), var(--primary-dark));
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            color: var(--text);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.935rem;
+            font-weight: 400;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            transition: color 0.2s ease;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.75rem;
+            border: 2px solid var(--border);
+            border-radius: 0.75rem;
+            font-size: 0.935rem;
+            transition: all 0.2s ease;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        input:focus + .input-icon {
+            color: var(--primary);
+        }
+
+        .browse-button {
+            padding: 0.875rem 1.25rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 0.935rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .browse-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .browse-button:hover::before {
+            left: 100%;
+        }
+
+        .browse-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        }
+
+        #organizar-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #organizar-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        #organizar-btn:hover::before {
+            left: 100%;
+        }
+
+        #organizar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        }
+
+        #organizar-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status {
+            margin-top: 1.25rem;
+            padding: 1rem 1.25rem;
+            border-radius: 0.75rem;
+            font-size: 0.935rem;
+            display: none;
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        .success {
+            background-color: rgba(5, 150, 105, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(5, 150, 105, 0.2);
+        }
+
+        .error {
+            background-color: rgba(220, 38, 38, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .recent-dirs {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .recent-dirs h2 {
+            font-size: 0.935rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .recent-dir-item {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.935rem;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .recent-dir-item:hover {
+            background-color: var(--hover-bg);
+            color: var(--primary);
+            border-color: var(--border);
+            transform: translateX(5px);
+        }
+
+        .recent-dir-item i {
+            transition: transform 0.2s ease;
+        }
+
+        .recent-dir-item:hover i {
+            transform: rotate(15deg);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: #0f172a;
+                --surface: #1e293b;
+                --text: #f1f5f9;
+                --text-secondary: #94a3b8;
+                --border: #2d3748;
+                --hover-bg: #2d3748;
+            }
+
+            body {
+                background: radial-gradient(circle at top right, #1e1b4b, var(--background));
+            }
+
+            .container {
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            input {
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .status.success {
+                background-color: rgba(5, 150, 105, 0.2);
+            }
+
+            .status.error {
+                background-color: rgba(220, 38, 38, 0.2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Organizador de Arquivos</h1>
+            <p class="subtitle">Organize seus arquivos automaticamente por tipo</p>
+        </div>
+        <div class="input-container">
+            <div class="input-wrapper">
+                <i class="input-icon fas fa-folder"></i>
+                <input type="text" id="diretorio" placeholder="Ex: C:\Users\Documentos" autocomplete="off">
+            </div>
+            <button class="browse-button" onclick="selecionarDiretorio()">
+                <i class="fas fa-folder-open"></i>
+                Procurar
+            </button>
+        </div>
+        <button id="organizar-btn" onclick="organizarArquivos()">
+            <span class="button-text">Organizar Arquivos</span>
+            <i class="fas fa-magic"></i>
+        </button>
+        <div id="status" class="status"></div>
+
+        <div class="recent-dirs">
+            <h2>Diretórios Recentes</h2>
+            <div id="recent-dirs-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // Previous JavaScript code remains the same
+        const RECENT_DIRS_KEY = 'recentDirs';
+        const MAX_RECENT_DIRS = 3;
+
+        function loadRecentDirs() {
+            const dirs = JSON.parse(localStorage.getItem(RECENT_DIRS_KEY) || '[]');
+            const recentDirsList = document.getElementById('recent-dirs-list');
+            recentDirsList.innerHTML = '';
+
+            dirs.forEach(dir => {
+                const item = document.createElement('div');
+                item.className = 'recent-dir-item';
+                item.innerHTML = `
+                    <i class="fas fa-clock"></i>
+                    <span>${dir}</span>
+                `;
+                item.onclick = () => {
+                    document.getElementById('diretorio').value = dir;
+                };
+                recentDirsList.appendChild(item);
+            });
+        }
+
+        function addRecentDir(dir) {
+            const dirs = JSON.parse(localStorage.getItem(RECENT_DIRS_KEY) || '[]');
+            const newDirs = [dir, ...dirs.filter(d => d !== dir)].slice(0, MAX_RECENT_DIRS);
+            localStorage.setItem(RECENT_DIRS_KEY, JSON.stringify(newDirs));
+            loadRecentDirs();
+        }
+
+        async function organizarArquivos() {
+            const diretorio = document.getElementById('diretorio').value;
+            const button = document.getElementById('organizar-btn');
+            const buttonText = button.querySelector('.button-text');
+            const buttonIcon = button.querySelector('i');
+
+            if (!diretorio) {
+                mostrarStatus('Por favor, insira um diretório válido', 'error');
+                return;
+            }
+
+            try {
+                button.disabled = true;
+                buttonText.textContent = 'Organizando...';
+                buttonIcon.className = 'fas fa-spinner loading';
+
+                const response = await fetch('/organizar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ diretorio }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    mostrarStatus(data.message, 'success');
+                    addRecentDir(diretorio);
+                } else {
+                    mostrarStatus(data.error || 'Erro ao organizar arquivos', 'error');
+                }
+            } catch (error) {
+                mostrarStatus('Erro ao conectar com o servidor: ' + error.message, 'error');
+            } finally {
+                button.disabled = false;
+                buttonText.textContent = 'Organizar Arquivos';
+                buttonIcon.className = 'fas fa-magic';
+            }
+        }
+
+        function mostrarStatus(mensagem, tipo) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = mensagem;
+            statusDiv.className = `status ${tipo}`;
+            statusDiv.style.display = 'block';
+
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        async function selecionarDiretorio() {
+            try {
+                const diretorio = await pywebview.api.escolher_diretorio();
+                if (diretorio) {
+                    document.getElementById('diretorio').value = diretorio;
+                }
+            } catch (error) {
+                mostrarStatus('Erro ao selecionar diretório: ' + error.message, 'error');
+            }
+        }
+
+        document.getElementById('diretorio').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                organizarArquivos();}
+        });
+
+        window.addEventListener('load', function () {
+            loadRecentDirs();
+            
+            // Add ripple effect to buttons
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const ripple = document.createElement('div');
+                    ripple.classList.add('ripple');
+                    this.appendChild(ripple);
+                    
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size/2;
+                    const y = e.clientY - rect.top - size/2;
+                    
+                    ripple.style.width = ripple.style.height = `${size}px`;
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+        });
+    </script>
+
+    <style>
+        /* Additional styles for new animations and effects */
+        
+        /* Ripple effect */
+        button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Input focus effect */
+        .input-wrapper::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper:focus-within::after {
+            width: 100%;
+            left: 0;
+        }
+
+        /* Shimmer effect for buttons */
+        .browse-button, #organizar-btn {
+            background-size: 200% auto;
+            transition: background-position 0.5s ease-in-out;
+        }
+
+        .browse-button:hover, #organizar-btn:hover {
+            background-position: right center;
+        }
+
+        /* Floating animation for container */
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .container {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Status message slide-in animation */
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .status {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* Recent directories hover effect */
+        .recent-dir-item {
+            position: relative;
+        }
+
+        .recent-dir-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .recent-dir-item:hover::after {
+            width: 100%;
+        }
+
+        /* Input placeholder animation */
+        input::placeholder {
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        input:focus::placeholder {
+            transform: translateX(10px);
+            opacity: 0.7;
+        }
+
+        /* Loading spinner pulse effect */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .loading {
+            animation: spin 1s linear infinite, pulse 1s ease-in-out infinite;
+        }
+    </style>
+</body>
+</html>
