@@ -3,9 +3,15 @@
 E aí, pessoal! Criei esse projeto pra resolver um problema que todo mundo tem: aquela pasta bagunçada cheia de arquivos misturados. O **FileFlow** organiza tudo automaticamente, deixando seu PC mais limpo que armário de Marie Kondo! 
 
 <div align="center">
-  <img src="https://github.com/Jeffinp/file_organizer/blob/main/image/Screenshot_1051.png" alt="Interface Moderna" width="600">
+  <img src="https://github.com/Jeffinp/file_organizer/blob/main/image/Screenshot_1044.png" alt="Interface Moderna" width="600">
   <p><i>Interface limpa e moderna - até seu avô vai saber usar!</i></p>
 </div>
+
+<div align="center">
+  <img src="https://github.com/Jeffinp/file_organizer/blob/main/image/Screenshot_1045.png" alt="Interface Moderna" width="600">
+  <p><i>Modo Escuro.</i></p>
+</div>
+
 
 ## 💡 Por que usar?
 
