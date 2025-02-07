@@ -91,5 +91,3 @@ python app.py
 ---
 
 Quer ver como ficou na prática? Dá uma olhada no código e se achar algum bug ou tiver ideia massa, abre uma issue! 🐛💡
-
-*"Organizar arquivos deveria ser chato? Com o FileFlow, é só diversão!"* 🎉
