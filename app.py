@@ -1,73 +1,26 @@
-import os
-import sys
-import time
+"""File organization application with GUI using Flask and webview."""
+
 import hashlib
 import logging
 import logging.handlers
+import os
+import sys
 import threading
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+import time
 from contextlib import contextmanager
-from flask import Flask, render_template, request, jsonify
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+from flask import Flask, jsonify, render_template, request
 import webview
 
-# Enhanced logging configuration
+# Constants
+MAX_LOG_SIZE = 5 * 1024 * 1024  # 5MB
+FILE_CHUNK_SIZE = 65536  # 64KB
+LOCK_TIMEOUT = 5  # seconds
 
-
-def setup_logging() -> logging.Logger:
-    """Configure logging with rotation and proper error handling."""
-    try:
-        log_dir = Path("logs")
-        log_dir.mkdir(exist_ok=True)
-
-        log_file = log_dir / f"app_{time.strftime('%Y%m%d')}.log"
-
-        # Create formatter
-
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - [%(threadName)s] - %(message)s"
-        )
-
-        # Create handlers
-
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(formatter)
-
-        file_handler = logging.handlers.RotatingFileHandler(
-            log_file, maxBytes=5 * 1024 * 1024, backupCount=5, encoding="utf-8"  # 5MB
-        )
-        file_handler.setFormatter(formatter)
-
-        # Get logger
-
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.DEBUG)
-
-        # Add handlers
-
-        logger.addHandler(console_handler)
-        logger.addHandler(file_handler)
-
-        return logger
-    except Exception as e:
-        print(f"Failed to setup logging: {e}")
-
-        # Fallback to basic logging
-
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        )
-        return logging.getLogger(__name__)
-
-
-logger = setup_logging()
-
-# File type configurations with more categories
-
-
-TIPOS_ARQUIVO: Dict[str, List[str]] = {
-    "Imagens": [
+FILE_TYPES: Dict[str, List[str]] = {
+    "Images": [
         ".jpg",
         ".jpeg",
         ".png",
@@ -78,7 +31,7 @@ TIPOS_ARQUIVO: Dict[str, List[str]] = {
         ".tiff",
         ".ico",
     ],
-    "Documentos": [
+    "Documents": [
         ".pdf",
         ".doc",
         ".docx",
@@ -88,23 +41,11 @@ TIPOS_ARQUIVO: Dict[str, List[str]] = {
         ".xls",
         ".xlsx",
         ".csv",
-        ".ppt",
-        ".pptx",
     ],
-    "Músicas": [
-        ".mp3",
-        ".wav",
-        ".flac",
-        ".m4a",
-        ".ogg",
-        ".wma",
-        ".aac",
-        ".mid",
-        ".midi",
-    ],
-    "Vídeos": [".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".3gp"],
-    "Compactados": [".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz"],
-    "Executáveis": [".exe", ".msi", ".bat", ".cmd", ".com", ".dll"],
+    "Audio": [".mp3", ".wav", ".flac", ".m4a", ".ogg", ".wma", ".aac", ".mid", ".midi"],
+    "Video": [".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".3gp"],
+    "Archives": [".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz"],
+    "Executables": [".exe", ".msi", ".bat", ".cmd", ".com", ".dll"],
     "Scripts": [
         ".py",
         ".js",
@@ -116,9 +57,8 @@ TIPOS_ARQUIVO: Dict[str, List[str]] = {
         ".c",
         ".cs",
         ".rb",
-        ".pl",
     ],
-    "3D": [
+    "3D_Models": [
         ".stl",
         ".obj",
         ".fbx",
@@ -129,324 +69,271 @@ TIPOS_ARQUIVO: Dict[str, List[str]] = {
         ".x3d",
         ".blend",
     ],
-    "Outros": [],
+    "Others": [],
 }
 
+# Initialize Flask app
+app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max request size
 
-# File operation lock
+
+def configure_logging() -> logging.Logger:
+    """Configure logging with rotation and error handling."""
+    logger = logging.getLogger(__name__)
+    try:
+        log_dir = Path("logs")
+        log_dir.mkdir(exist_ok=True)
+
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - [%(threadName)s] - %(message)s"
+        )
+
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+
+        file_handler = logging.handlers.RotatingFileHandler(
+            log_dir / f"app_{time.strftime('%Y%m%d')}.log",
+            maxBytes=MAX_LOG_SIZE,
+            backupCount=5,
+            encoding="utf-8",
+        )
+        file_handler.setFormatter(formatter)
+
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(console_handler)
+        logger.addHandler(file_handler)
+
+    except Exception as error:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        )
+        logger.error("Failed to configure logging: %s", error)
+
+    return logger
 
 
+logger = configure_logging()
 file_locks: Dict[str, threading.Lock] = {}
 
 
 @contextmanager
 def file_lock(filepath: str):
     """Thread-safe file operation context manager."""
-    if filepath not in file_locks:
-        file_locks[filepath] = threading.Lock()
+    lock = file_locks.setdefault(filepath, threading.Lock())
     try:
-        file_locks[filepath].acquire(timeout=5)  # 5 second timeout
+        acquired = lock.acquire(timeout=LOCK_TIMEOUT)
+        if not acquired:
+            raise TimeoutError(
+                f"Could not acquire lock for {filepath} within {LOCK_TIMEOUT} seconds"
+            )
         yield
     finally:
-        if file_locks[filepath].locked():
-            file_locks[filepath].release()
+        if lock.locked():
+            lock.release()
 
 
-def calculate_file_hash(filepath: Path) -> str:
-    """Calculate SHA-256 hash of a file."""
-    try:
-        hash_sha256 = hashlib.sha256()
-        with open(filepath, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_sha256.update(chunk)
-        return hash_sha256.hexdigest()
-    except Exception as e:
-        logger.error(f"Error calculating file hash for {filepath}: {e}")
-        return ""
+class FileOrganizer:
+    """Main file organization logic handler."""
 
-
-def is_file_in_use(filepath: Path) -> bool:
-    """Check if a file is currently in use."""
-    try:
-        with open(filepath, "rb") as _:
-            return False
-    except (IOError, OSError):
-        return True
-
-
-def verificar_permissoes(diretorio: Path) -> Tuple[bool, str]:
-    """
-    Verify directory permissions with detailed checks.
-
-    Args:
-        diretorio: Directory path to check
-
-    Returns:
-        Tuple[bool, str]: Success status and message
-    """
-    try:
-        if not diretorio.exists():
-            return False, "Directory does not exist"
-        # Check read permission
-
-        if not os.access(diretorio, os.R_OK):
-            return False, "No read permission"
-        # Check write permission
-
-        if not os.access(diretorio, os.W_OK):
-            return False, "No write permission"
-        # Test file creation
-
-        test_file = diretorio / ".permission_test"
+    @staticmethod
+    def calculate_file_hash(filepath: Path) -> str:
+        """Calculate SHA-256 hash of a file's contents."""
+        sha256 = hashlib.sha256()
         try:
-            test_file.touch()
-            test_file.unlink()
-        except Exception as e:
-            return False, f"Failed to create test file: {e}"
-        return True, "All permissions verified"
-    except Exception as e:
-        logger.error(f"Permission check error: {e}")
-        return False, str(e)
+            with filepath.open("rb") as file:
+                while chunk := file.read(FILE_CHUNK_SIZE):
+                    sha256.update(chunk)
+            return sha256.hexdigest()
+        except Exception as error:
+            logger.error("Error calculating hash for %s: %s", filepath, error)
+            return ""
 
+    @staticmethod
+    def check_permissions(directory: Path) -> Tuple[bool, str]:
+        """Verify directory permissions and accessibility."""
+        try:
+            if not directory.exists():
+                return False, "Directory does not exist"
+            if not os.access(directory, os.R_OK | os.W_OK):
+                return False, "Insufficient permissions"
 
-def get_safe_filename(filename: str) -> str:
-    """Generate a safe filename by removing/replacing unsafe characters."""
-    # Remove/replace unsafe characters
-
-    unsafe_chars = '<>:"/\\|?*'
-    for char in unsafe_chars:
-        filename = filename.replace(char, "_")
-    return filename
-
-
-class FileOperationResult:
-    """Class to store file operation results."""
-
-    def __init__(self, success: bool, message: str, moved_files: int = 0):
-        self.success = success
-        self.message = message
-        self.moved_files = moved_files
-        self.timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-
-
-def organizar_arquivos(diretorio: str) -> FileOperationResult:
-    """
-    Organize files with enhanced error handling and safety checks.
-
-    Args:
-        diretorio: Directory path to organize
-
-    Returns:
-        FileOperationResult: Operation result object
-    """
-    try:
-        logger.info(f"Starting file organization in: {diretorio}")
-        diretorio_path = Path(diretorio)
-
-        # Verify directory
-
-        perm_status, perm_message = verificar_permissoes(diretorio_path)
-        if not perm_status:
-            return FileOperationResult(False, f"Permission error: {perm_message}")
-        arquivos_movidos = 0
-        erros = []
-
-        # Process each file
-
-        for arquivo in diretorio_path.iterdir():
-            if not arquivo.is_file():
-                continue
+            test_file = directory / ".perm_test"
             try:
-                # Skip files in use
+                test_file.touch()
+                test_file.unlink()
+            except OSError as error:
+                return False, f"File creation test failed: {error}"
 
-                if is_file_in_use(arquivo):
-                    erros.append(f"File in use: {arquivo.name}")
-                    continue
-                # Determine file type
+            return True, "Valid permissions"
+        except Exception as error:
+            logger.error("Permission check failed: %s", error)
+            return False, str(error)
 
-                tipo = "Outros"
-                for categoria, extensoes in TIPOS_ARQUIVO.items():
-                    if arquivo.suffix.lower() in extensoes:
-                        tipo = categoria
-                        break
-                # Create destination folder
+    @staticmethod
+    def organize_files(directory: str) -> Dict:
+        """Organize files in specified directory into categorized subdirectories."""
+        result = {
+            "success": False,
+            "message": "",
+            "moved": 0,
+            "errors": [],
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        }
 
-                pasta_destino = diretorio_path / tipo
-                pasta_destino.mkdir(exist_ok=True)
-
-                # Generate safe filename
-
-                safe_name = get_safe_filename(arquivo.name)
-                novo_caminho = pasta_destino / safe_name
-
-                # Handle duplicates
-
-                if novo_caminho.exists():
-                    base_name = novo_caminho.stem
-                    extension = novo_caminho.suffix
-                    counter = 1
-                    while novo_caminho.exists():
-                        file_hash1 = calculate_file_hash(arquivo)
-                        file_hash2 = calculate_file_hash(novo_caminho)
-
-                        # If files are identical, skip
-
-                        if file_hash1 == file_hash2 and file_hash1:
-                            logger.info(f"Skipping duplicate file: {arquivo.name}")
-                            break
-                        novo_caminho = (
-                            pasta_destino / f"{base_name}_{counter}{extension}"
-                        )
-                        counter += 1
-                # Move file with lock
-
-                with file_lock(str(arquivo)):
-                    if not is_file_in_use(arquivo):
-                        arquivo.rename(novo_caminho)
-                        arquivos_movidos += 1
-                        logger.debug(f"File moved: {arquivo.name} -> {novo_caminho}")
-                    else:
-                        erros.append(f"File locked during move: {arquivo.name}")
-            except Exception as e:
-                error_msg = f"Error processing {arquivo.name}: {str(e)}"
-                logger.error(error_msg)
-                erros.append(error_msg)
-        # Generate result message
-
-        message = f"Files organized: {arquivos_movidos}"
-        if erros:
-            message += f"\nErrors occurred ({len(erros)}):\n" + "\n".join(erros)
-        return FileOperationResult(
-            success=arquivos_movidos > 0, message=message, moved_files=arquivos_movidos
-        )
-    except Exception as e:
-        logger.exception("Critical error during file organization")
-        return FileOperationResult(False, f"Critical error: {str(e)}")
-
-
-class API:
-    """Enhanced API interface with error handling."""
-
-    def escolher_diretorio(self) -> Optional[str]:
-        """
-        Open directory selection dialog with error handling.
-
-        Returns:
-            Optional[str]: Selected directory path or None
-        """
         try:
-            logger.debug("Opening directory selection dialog")
-            diretorio = webview.windows[0].create_file_dialog(webview.FOLDER_DIALOG)
+            dir_path = Path(directory)
+            perm_valid, perm_msg = FileOrganizer.check_permissions(dir_path)
+            if not perm_valid:
+                result["message"] = f"Permission error: {perm_msg}"
+                return result
 
-            if not diretorio:
-                logger.debug("Directory selection cancelled")
-                return None
-            selected_dir = diretorio[0]
+            for file in dir_path.iterdir():
+                if not file.is_file():
+                    continue
 
-            # Verify selected directory
+                try:
+                    category = "Others"
+                    for file_type, extensions in FILE_TYPES.items():
+                        if file.suffix.lower() in extensions:
+                            category = file_type
+                            break
 
-            dir_path = Path(selected_dir)
-            perm_status, perm_message = verificar_permissoes(dir_path)
+                    dest_dir = dir_path / category
+                    dest_dir.mkdir(exist_ok=True)
 
-            if not perm_status:
-                logger.error(f"Permission error for selected directory: {perm_message}")
-                return None
-            logger.info(f"Directory selected: {selected_dir}")
-            return selected_dir
-        except Exception as e:
-            logger.exception("Error in directory selection")
+                    safe_name = FileOrganizer.sanitize_filename(file.name)
+                    dest_path = dest_dir / safe_name
+
+                    if dest_path.exists():
+                        if FileOrganizer.is_duplicate(file, dest_path):
+                            continue
+                        dest_path = FileOrganizer.generate_unique_name(dest_path)
+
+                    with file_lock(str(file)):
+                        file.rename(dest_path)
+                        result["moved"] += 1
+
+                except Exception as error:
+                    error_msg = f"{file.name}: {str(error)}"
+                    logger.error(error_msg)
+                    result["errors"].append(error_msg)
+
+            result["success"] = result["moved"] > 0
+            result["message"] = f"Moved {result['moved']} files"
+            if result["errors"]:
+                result["message"] += f" with {len(result['errors'])} errors"
+
+        except Exception as error:
+            logger.exception("Organization failed")
+            result["message"] = f"Critical error: {str(error)}"
+
+        return result
+
+    @staticmethod
+    def sanitize_filename(filename: str) -> str:
+        """Remove potentially unsafe characters from filename."""
+        unsafe_chars = '<>:"/\\|?*'
+        return filename.translate(str.maketrans(unsafe_chars, "_" * len(unsafe_chars)))
+
+    @staticmethod
+    def generate_unique_name(path: Path) -> Path:
+        """Generate unique filename with incrementing counter."""
+        counter = 1
+        while path.exists():
+            path = path.with_name(f"{path.stem}_{counter}{path.suffix}")
+            counter += 1
+        return path
+
+    @staticmethod
+    def is_duplicate(source: Path, target: Path) -> bool:
+        """Check if two files are identical using hash comparison."""
+        return FileOrganizer.calculate_file_hash(
+            source
+        ) == FileOrganizer.calculate_file_hash(target)
+
+
+class DirectoryAPI:
+    """API endpoints for directory operations."""
+
+    def choose_directory(self) -> Optional[str]:
+        """Open directory selection dialog."""
+        try:
+            selected = webview.windows[0].create_file_dialog(webview.FOLDER_DIALOG)
+            if selected:
+                return self.validate_directory(Path(selected[0]))
+            return None
+        except Exception as error:
+            logger.error("Directory selection failed: %s", error)
             return None
 
-
-# Flask application setup
-
-
-app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max-body-size
-
-
-@app.errorhandler(413)
-def request_entity_too_large(error):
-    """Handle large request errors."""
-    return jsonify({"error": "Request too large"}), 413
+    def validate_directory(self, path: Path) -> Optional[str]:
+        """Validate selected directory permissions."""
+        valid, message = FileOrganizer.check_permissions(path)
+        if valid:
+            return str(path)
+        logger.warning("Invalid directory: %s - %s", path, message)
+        return None
 
 
 @app.route("/")
 def index():
-    """Route for main page."""
+    """Serve main application interface."""
     return render_template("index.html")
 
 
 @app.route("/organizar", methods=["POST"])
-def organizar():
-    """Enhanced endpoint for file organization."""
-    logger.debug("Received POST request to /organizar")
-
+def organizar_arquivos():
+    """Endpoint for file organization."""
     try:
         if not request.is_json:
             return jsonify({"error": "Invalid content type"}), 400
-        dados = request.get_json()
 
-        if not dados or "diretorio" not in dados:
+        data = request.get_json()
+        if not data.get("diretorio"):
             return jsonify({"error": "Directory not specified"}), 400
-        diretorio = dados["diretorio"]
 
-        if not diretorio or not isinstance(diretorio, str):
-            return jsonify({"error": "Invalid directory path"}), 400
-        # Organize files
+        resultado = FileOrganizer.organize_files(data["diretorio"])
+        status_code = 200 if resultado["success"] else 500
 
-        result = organizar_arquivos(diretorio)
+        return (
+            jsonify(
+                {
+                    "success": resultado["success"],
+                    "message": resultado["message"],
+                    "moved_files": resultado["moved"],
+                    "error_count": len(resultado["errors"]),
+                    "timestamp": resultado["timestamp"],
+                }
+            ),
+            status_code,
+        )
 
-        response = {
-            "success": result.success,
-            "message": result.message,
-            "files_moved": result.moved_files,
-            "timestamp": result.timestamp,
-        }
-
-        return jsonify(response), 200 if result.success else 500
-    except Exception as e:
-        logger.exception("Unhandled error processing request")
-        return jsonify({"error": f"Server error: {str(e)}"}), 500
+    except Exception as error:
+        logger.error("Unhandled error: %s", str(error))
+        return jsonify({"error": "Internal server error", "details": str(error)}), 500
 
 
 def main():
-    """Enhanced main application function."""
-    logger.info("Starting application")
-
+    """Application entry point."""
     try:
-        # Check system requirements
-
         if sys.version_info < (3, 7):
-            logger.error("Python 3.7 or higher required")
+            logger.error("Requires Python 3.7+")
             sys.exit(1)
-        # Initialize API
 
-        api = API()
+        window = webview.create_window(
+            "File Organizer",
+            app,
+            js_api=DirectoryAPI(),  # Certifique-se que está usando a API correta
+            width=800,
+            height=600,
+            min_size=(400, 300),
+        )
+        window.events.closed += lambda: logger.info("Application closed")
+        webview.start()
 
-        # Create window with error handling
-
-        try:
-            window = webview.create_window(
-                "File Organizer",
-                app,
-                width=800,
-                height=600,
-                js_api=api,
-                min_size=(400, 300),
-            )
-
-            # Set window properties
-
-            window.events.closed += lambda: logger.info("Application window closed")
-
-            logger.info("Window created successfully")
-            webview.start()
-        except Exception as e:
-            logger.error(f"Failed to create window: {e}")
-            sys.exit(1)
-    except Exception as e:
-        logger.exception("Critical error starting application")
+    except Exception as error:
+        logger.critical("Application failed to start: %s", error)
         sys.exit(1)
 
 
