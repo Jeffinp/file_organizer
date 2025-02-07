@@ -1,512 +1,484 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FileFlow - Organizador Inteligente</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #6366f1;
-            --primary-light: #818cf8;
-            --primary-dark: #4f46e5;
-            --success: #10b981;
-            --error: #ef4444;
-            --warning: #f59e0b;
-            --background: #f8fafc;
-            --surface: #ffffff;
-            --text: #1e293b;
-            --text-secondary: #64748b;
-            --border: #e2e8f0;
-            --hover-bg: #f1f5f9;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            
-            /* Dark mode variables */
-            --dark-background: #0f172a;
-            --dark-surface: #1e293b;
-            --dark-text: #f8fafc;
-            --dark-text-secondary: #94a3b8;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: radial-gradient(circle at top right, #eef2ff, var(--background));
-            min-height: 100vh;
-            display: grid;
-            place-items: center;
-            padding: 1rem;
-            color: var(--text);
-            transition: var(--transition);
-        }
-
-        /* Container Moderno com Vidro */
-        .container {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px) saturate(180%);
-            -webkit-backdrop-filter: blur(16px) saturate(180%);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.125);
-            padding: 2.5rem;
-            width: 100%;
-            max-width: 480px;
-            box-shadow: var(--shadow-lg);
-            position: relative;
-            overflow: hidden;
-            transform: translateY(0);
-            transition: var(--transition);
-        }
-
-        .container::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                45deg,
-                rgba(99, 102, 241, 0.1),
-                rgba(255, 255, 255, 0.2),
-                rgba(79, 70, 229, 0.1)
-            );
-            animation: rotate 20s linear infinite;
-            z-index: -1;
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Header */
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-            position: relative;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(to right, var(--primary), var(--primary-dark));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-            font-weight: 800;
-            letter-spacing: -0.05em;
-        }
-
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            line-height: 1.5;
-            max-width: 320px;
-            margin: 0 auto;
-        }
-
-        /* Input Group */
-        .input-group {
-            display: flex;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-
-        .input-wrapper {
-            flex: 1;
-            position: relative;
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-            transition: var(--transition);
-        }
-
-        input {
-            width: 100%;
-            padding: 1rem 1rem 1rem 3rem;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            font-size: 1rem;
-            background: rgba(255, 255, 255, 0.9);
-            color: var(--text);
-            transition: var(--transition);
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
-            background: white;
-        }
-
-        input:focus + .input-icon {
-            color: var(--primary);
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        /* Botões */
-        .button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-            border: none;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .button--primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1);
-        }
-
-        .button--primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2);
-        }
-
-        .button--primary:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        /* Status */
-        .status {
-            padding: 1rem;
-            border-radius: 12px;
-            margin: 1.5rem 0;
-            display: none;
-            align-items: center;
-            gap: 0.75rem;
-            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        .status.show {
-            display: flex;
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .status__icon {
-            font-size: 1.25rem;
-        }
-
-        .status--success {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .status--error {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--error);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        /* Recent Dirs */
-        .recent-dirs {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .recent-dirs__title {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-            font-weight: 500;
-        }
-
-        .recent-dir-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .recent-dir-item:hover {
-            background: var(--hover-bg);
-            transform: translateX(5px);
-        }
-
-        /* Dark Mode */
-        [data-theme="dark"] body {
-            background: radial-gradient(circle at top right, #1e1b4b, var(--dark-background));
-            color: var(--dark-text);
-        }
-
-        [data-theme="dark"] .container {
-            background: rgba(30, 41, 59, 0.8);
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        [data-theme="dark"] input {
-            background: rgba(15, 23, 42, 0.7);
-            border-color: rgba(255, 255, 255, 0.1);
-            color: var(--dark-text);
-        }
-
-        /* Animações */
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>FileFlow - Organizador Inteligente</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --primary: #6366f1;
+                --primary-light: #818cf8;
+                --primary-dark: #4f46e5;
+                --success: #10b981;
+                --error: #ef4444;
+                --warning: #f59e0b;
+                --background: #f8fafc;
+                --surface: #ffffff;
+                --text: #1e293b;
+                --text-secondary: #64748b;
+                --border: #e2e8f0;
+                --hover-bg: #f1f5f9;
+                --glass-bg: rgba(255, 255, 255, 0.7);
+                --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+                --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                /* Dark mode variables */
+                --dark-background: #0f172a;
+                --dark-surface: #1e293b;
+                --dark-text: #f8fafc;
+                --dark-text-secondary: #94a3b8;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                -webkit-tap-highlight-color: transparent;
             }
-        }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
+            body {
+                font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                background: radial-gradient(circle at top right, #eef2ff, var(--background));
+                min-height: 100vh;
+                display: grid;
+                place-items: center;
+                padding: 1rem;
+                color: var(--text);
+                transition: var(--transition);
+            }
 
-        /* Tema Switch */
-        .theme-toggle {
-            position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            background: var(--glass-bg);
-            border: 1px solid var(--border);
-            transition: var(--transition);
-        }
-
-        .theme-toggle:hover {
-            transform: rotate(180deg) scale(1.1);
-        }
-
-        /* Responsividade */
-        @media (max-width: 480px) {
+            /* Container Moderno com Vidro */
             .container {
-                padding: 1.5rem;
-                border-radius: 16px;
+                background: var(--glass-bg);
+                backdrop-filter: blur(16px) saturate(180%);
+                -webkit-backdrop-filter: blur(16px) saturate(180%);
+                border-radius: 24px;
+                border: 1px solid rgba(255, 255, 255, 0.125);
+                padding: 2.5rem;
+                width: 100%;
+                max-width: 480px;
+                box-shadow: var(--shadow-lg);
+                position: relative;
+                overflow: hidden;
+                transform: translateY(0);
+                transition: var(--transition);
+            }
+
+            .container::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: linear-gradient(45deg,
+                        rgba(99, 102, 241, 0.1),
+                        rgba(255, 255, 255, 0.2),
+                        rgba(79, 70, 229, 0.1));
+                animation: rotate 20s linear infinite;
+                z-index: -1;
+            }
+
+            @keyframes rotate {
+                0% {
+                    transform: rotate(0deg);
+                }
+
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* Header */
+            .header {
+                text-align: center;
+                margin-bottom: 2rem;
+                position: relative;
             }
 
             h1 {
-                font-size: 2rem;
+                font-size: 2.5rem;
+                background: linear-gradient(to right, var(--primary), var(--primary-dark));
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 0.5rem;
+                font-weight: 800;
+                letter-spacing: -0.05em;
             }
-        }
-    </style>
-</head>
-<body>
-    <button class="theme-toggle" aria-label="Alternar tema" onclick="toggleTheme()">
-        <i class="fas fa-moon"></i>
-    </button>
 
-    <div class="container">
-        <div class="header">
-            <h1>FileFlow</h1>
-            <p class="subtitle">Organização inteligente de arquivos com um clique</p>
-        </div>
+            .subtitle {
+                color: var(--text-secondary);
+                font-size: 1rem;
+                line-height: 1.5;
+                max-width: 320px;
+                margin: 0 auto;
+            }
 
-        <div class="input-group">
-            <div class="input-wrapper">
-                <i class="input-icon fas fa-folder-open"></i>
-                <input 
-                    type="text" 
-                    id="diretorio" 
-                    placeholder="Cole o caminho ou selecione um diretório"
-                    aria-label="Diretório para organização"
-                    autocomplete="off"
-                >
-            </div>
-            <button 
-                class="button button--primary"
-                onclick="selecionarDiretorio()"
-                aria-label="Selecionar diretório"
-            >
-                <i class="fas fa-search"></i>
-            </button>
-        </div>
+            /* Input Group */
+            .input-group {
+                display: flex;
+                gap: 0.75rem;
+                margin-bottom: 1.5rem;
+                position: relative;
+            }
 
-        <button 
-            id="organizar-btn" 
-            class="button button--primary"
-            onclick="organizarArquivos()"
-            aria-label="Iniciar organização de arquivos"
-        >
-            <span class="button-text">Organizar Agora</span>
-            <i class="fas fa-sparkles"></i>
+            .input-wrapper {
+                flex: 1;
+                position: relative;
+            }
+
+            .input-icon {
+                position: absolute;
+                left: 1rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--text-secondary);
+                transition: var(--transition);
+            }
+
+            input {
+                width: 100%;
+                padding: 1rem 1rem 1rem 3rem;
+                border: 2px solid var(--border);
+                border-radius: 12px;
+                font-size: 1rem;
+                background: rgba(255, 255, 255, 0.9);
+                color: var(--text);
+                transition: var(--transition);
+            }
+
+            input:focus {
+                outline: none;
+                border-color: var(--primary);
+                box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+                background: white;
+            }
+
+            input:focus+.input-icon {
+                color: var(--primary);
+                transform: translateY(-50%) scale(1.1);
+            }
+
+            /* Botões */
+            .button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                padding: 1rem 1.5rem;
+                border-radius: 12px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: var(--transition);
+                border: none;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .button--primary {
+                background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+                color: white;
+                box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1);
+            }
+
+            .button--primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2);
+            }
+
+            .button--primary:disabled {
+                opacity: 0.7;
+                cursor: not-allowed;
+                transform: none !important;
+            }
+
+            /* Status */
+            .status {
+                padding: 1rem;
+                border-radius: 12px;
+                margin: 1.5rem 0;
+                display: none;
+                align-items: center;
+                gap: 0.75rem;
+                animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            .status.show {
+                display: flex;
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .status__icon {
+                font-size: 1.25rem;
+            }
+
+            .status--success {
+                background: rgba(16, 185, 129, 0.1);
+                color: var(--success);
+                border: 1px solid rgba(16, 185, 129, 0.2);
+            }
+
+            .status--error {
+                background: rgba(239, 68, 68, 0.1);
+                color: var(--error);
+                border: 1px solid rgba(239, 68, 68, 0.2);
+            }
+
+            /* Recent Dirs */
+            .recent-dirs {
+                margin-top: 2rem;
+                padding-top: 2rem;
+                border-top: 1px solid var(--border);
+            }
+
+            .recent-dirs__title {
+                font-size: 0.875rem;
+                color: var(--text-secondary);
+                margin-bottom: 1rem;
+                font-weight: 500;
+            }
+
+            .recent-dir-item {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.75rem;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: var(--transition);
+            }
+
+            .recent-dir-item:hover {
+                background: var(--hover-bg);
+                transform: translateX(5px);
+            }
+
+            /* Dark Mode */
+            [data-theme="dark"] body {
+                background: radial-gradient(circle at top right, #1e1b4b, var(--dark-background));
+                color: var(--dark-text);
+            }
+
+            [data-theme="dark"] .container {
+                background: rgba(30, 41, 59, 0.8);
+                border-color: rgba(255, 255, 255, 0.1);
+            }
+
+            [data-theme="dark"] input {
+                background: rgba(15, 23, 42, 0.7);
+                border-color: rgba(255, 255, 255, 0.1);
+                color: var(--dark-text);
+            }
+
+            /* Animações */
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.05);
+                }
+
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            /* Tema Switch */
+            .theme-toggle {
+                position: absolute;
+                top: 1.5rem;
+                right: 1.5rem;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                background: var(--glass-bg);
+                border: 1px solid var(--border);
+                transition: var(--transition);
+            }
+
+            .theme-toggle:hover {
+                transform: rotate(180deg) scale(1.1);
+            }
+
+            /* Responsividade */
+            @media (max-width: 480px) {
+                .container {
+                    padding: 1.5rem;
+                    border-radius: 16px;
+                }
+
+                h1 {
+                    font-size: 2rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <button class="theme-toggle" aria-label="Alternar tema" onclick="toggleTheme()">
+            <i class="fas fa-moon"></i>
         </button>
-
-        <div id="status" class="status" role="alert"></div>
-
-        <div class="recent-dirs">
-            <h2 class="recent-dirs__title">Diretórios Recentes</h2>
-            <div id="recent-dirs-list" class="recent-dirs__list"></div>
-        </div>
-    </div>
-
-    <script>
-        // Controle de Tema
-        function toggleTheme() {
-            const html = document.documentElement;
-            const isDark = html.getAttribute('data-theme') === 'dark';
-            html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-            localStorage.setItem('theme', isDark ? 'light' : 'dark');
-            document.querySelector('.theme-toggle i').className = isDark 
-                ? 'fas fa-moon'
-                : 'fas fa-sun';
-        }
-
-        // Carregar tema salvo
-        function loadTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            document.querySelector('.theme-toggle i').className = savedTheme === 'dark'
-                ? 'fas fa-sun'
-                : 'fas fa-moon';
-        }
-
-        // Gerenciamento de Diretórios Recentes
-        const RECENT_DIRS_KEY = 'fileFlowRecentDirs';
-        const MAX_RECENT_DIRS = 5;
-
-        function updateRecentDirsList() {
-            const recentDirs = JSON.parse(localStorage.getItem(RECENT_DIRS_KEY) || '[]');
-            const listElement = document.getElementById('recent-dirs-list');
-            
-            listElement.innerHTML = recentDirs.map(dir => `
-                <div class="recent-dir-item" tabindex="0" role="button">
-                    <i class="fas fa-history"></i>
-                    <span>${dir}</span>
+        <div class="container">
+            <div class="header">
+                <h1>FileFlow</h1>
+                <p class="subtitle">Organização inteligente de arquivos com um clique</p>
+            </div>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <i class="input-icon fas fa-folder-open"></i>
+                    <input type="text" id="diretorio" placeholder="Cole o caminho ou selecione um diretório" aria-label="Diretório para organização" autocomplete="off">
                 </div>
+                <button class="button button--primary" onclick="selecionarDiretorio()" aria-label="Selecionar diretório">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <button id="organizar-btn" class="button button--primary" onclick="organizarArquivos()" aria-label="Iniciar organização de arquivos">
+                <span class="button-text">Organizar Agora</span>
+                <i class="fas fa-sparkles"></i>
+            </button>
+            <div id="status" class="status" role="alert"></div>
+            <div class="recent-dirs">
+                <h2 class="recent-dirs__title">Diretórios Recentes</h2>
+                <div id="recent-dirs-list" class="recent-dirs__list"></div>
+            </div>
+        </div>
+        <script>
+            // Controle de Tema
+            function toggleTheme() {
+                const html = document.documentElement;
+                const isDark = html.getAttribute('data-theme') === 'dark';
+                html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+                localStorage.setItem('theme', isDark ? 'light' : 'dark');
+                document.querySelector('.theme-toggle i').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+            }
+            // Carregar tema salvo
+            function loadTheme() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                document.querySelector('.theme-toggle i').className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+            // Gerenciamento de Diretórios Recentes
+            const RECENT_DIRS_KEY = 'fileFlowRecentDirs';
+            const MAX_RECENT_DIRS = 5;
+
+            function updateRecentDirsList() {
+                const recentDirs = JSON.parse(localStorage.getItem(RECENT_DIRS_KEY) || '[]');
+                const listElement = document.getElementById('recent-dirs-list');
+                listElement.innerHTML = recentDirs.map(dir => `
+                
+								<div class="recent-dir-item" tabindex="0" role="button">
+									<i class="fas fa-history"></i>
+									<span>${dir}</span>
+								</div>
             `).join('');
-
-            document.querySelectorAll('.recent-dir-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    document.getElementById('diretorio').value = item.querySelector('span').textContent;
+                document.querySelectorAll('.recent-dir-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        document.getElementById('diretorio').value = item.querySelector('span').textContent;
+                    });
                 });
-            });
-        }
-
-        function addToRecentDirs(path) {
-            const recentDirs = JSON.parse(localStorage.getItem(RECENT_DIRS_KEY) || '[]');
-            const updatedDirs = [
-                path,
-                ...recentDirs.filter(dir => dir !== path)
-            ].slice(0, MAX_RECENT_DIRS);
-            
-            localStorage.setItem(RECENT_DIRS_KEY, JSON.stringify(updatedDirs));
-            updateRecentDirsList();
-        }
-
-        // Controle de Interface
-        async function organizarArquivos() {
-            const diretorio = document.getElementById('diretorio').value.trim();
-            const button = document.getElementById('organizar-btn');
-            const status = document.getElementById('status');
-
-            if (!diretorio) {
-                showStatus('⚠️ Por favor, selecione um diretório válido', 'error');
-                return;
             }
 
-            try {
-                toggleLoading(true, button);
-                
-                const response = await fetch('/organizar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ diretorio })
-                });
-
-                if (!response.ok) throw new Error('Erro no servidor');
-                
-                const data = await response.json();
-                showStatus(`✅ ${data.message}`, 'success');
-                addToRecentDirs(diretorio);
-                
-            } catch (error) {
-                showStatus(`❌ ${error.message || 'Falha na conexão'}`, 'error');
-            } finally {
-                toggleLoading(false, button);
+            function addToRecentDirs(path) {
+                const recentDirs = JSON.parse(localStorage.getItem(RECENT_DIRS_KEY) || '[]');
+                const updatedDirs = [
+                    path, ...recentDirs.filter(dir => dir !== path)
+                ].slice(0, MAX_RECENT_DIRS);
+                localStorage.setItem(RECENT_DIRS_KEY, JSON.stringify(updatedDirs));
+                updateRecentDirsList();
             }
-        }
+            // Controle de Interface
+            async function organizarArquivos() {
+                const diretorio = document.getElementById('diretorio').value.trim();
+                const button = document.getElementById('organizar-btn');
+                const status = document.getElementById('status');
+                if (!diretorio) {
+                    showStatus('⚠️ Por favor, selecione um diretório válido', 'error');
+                    return;
+                }
+                try {
+                    toggleLoading(true, button);
+                    const response = await fetch('/organizar', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            diretorio
+                        })
+                    });
+                    if (!response.ok) throw new Error('Erro no servidor');
+                    const data = await response.json();
+                    showStatus(`✅ ${data.message}`, 'success');
+                    addToRecentDirs(diretorio);
+                } catch (error) {
+                    showStatus(`❌ ${error.message || 'Falha na conexão'}`, 'error');
+                } finally {
+                    toggleLoading(false, button);
+                }
+            }
 
-        function toggleLoading(isLoading, button) {
-            const icon = button.querySelector('i');
-            const text = button.querySelector('.button-text');
-            
-            button.disabled = isLoading;
-            icon.className = isLoading 
-                ? 'fas fa-spinner fa-pulse' 
-                : 'fas fa-sparkles';
-            text.textContent = isLoading ? 'Processando...' : 'Organizar Agora';
-        }
+            function toggleLoading(isLoading, button) {
+                const icon = button.querySelector('i');
+                const text = button.querySelector('.button-text');
+                button.disabled = isLoading;
+                icon.className = isLoading ? 'fas fa-spinner fa-pulse' : 'fas fa-sparkles';
+                text.textContent = isLoading ? 'Processando...' : 'Organizar Agora';
+            }
 
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.className = `status status--${type} show`;
-            status.innerHTML = `
-                <i class="status__icon ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            function showStatus(message, type) {
+                const status = document.getElementById('status');
+                status.className = `status status--${type} show`;
+                status.innerHTML = `
+                
+								<i class="status__icon ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
                 ${message}
             `;
-            
-            setTimeout(() => {
-                status.classList.remove('show');
-            }, 5000);
-        }
-
-        // Event Listeners
-        document.addEventListener('DOMContentLoaded', () => {
-            loadTheme();
-            updateRecentDirsList();
-            
-            document.getElementById('diretorio').addEventListener('keypress', e => {
-                if (e.key === 'Enter') organizarArquivos();
-            });
-        });
-
-        // Integração com pywebview
-        async function selecionarDiretorio() {
-            try {
-                const diretorio = await pywebview.api.choose_directory();
-                if (diretorio) {
-                    document.getElementById('diretorio').value = diretorio;
-                    showStatus('✔️ Diretório selecionado', 'success');
-                }
-            } catch (error) {
-                showStatus(`❌ ${error.message}`, 'error');
+                setTimeout(() => {
+                    status.classList.remove('show');
+                }, 5000);
             }
-        }
-    </script>
-</body>
+            // Event Listeners
+            document.addEventListener('DOMContentLoaded', () => {
+                loadTheme();
+                updateRecentDirsList();
+                document.getElementById('diretorio').addEventListener('keypress', e => {
+                    if (e.key === 'Enter') organizarArquivos();
+                });
+            });
+            // Integração com pywebview
+            async function selecionarDiretorio() {
+                try {
+                    const diretorio = await pywebview.api.choose_directory();
+                    if (diretorio) {
+                        document.getElementById('diretorio').value = diretorio;
+                        showStatus('✔️ Diretório selecionado', 'success');
+                    }
+                } catch (error) {
+                    showStatus(`❌ ${error.message}`, 'error');
+                }
+            }
+        </script>
+    </body>
 </html>
