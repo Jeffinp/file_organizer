@@ -388,6 +388,7 @@
                 const listElement = document.getElementById('recent-dirs-list');
                 listElement.innerHTML = recentDirs.map(dir => `
                 
+								
 								<div class="recent-dir-item" tabindex="0" role="button">
 									<i class="fas fa-history"></i>
 									<span>${dir}</span>
@@ -452,6 +453,7 @@
                 status.className = `status status--${type} show`;
                 status.innerHTML = `
                 
+								
 								<i class="status__icon ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
                 ${message}
             `;

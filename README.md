@@ -1,99 +1,101 @@
-# 🚀 FileFlow - Seu Organizador de Arquivos Inteligente
+# 🚀 FileFlow - Your Smart File Organizer
 
-E aí, pessoal! Criei esse projeto pra resolver um problema que todo mundo tem: aquela pasta bagunçada cheia de arquivos misturados. O **FileFlow** organiza tudo automaticamente, deixando seu PC mais limpo que armário de Marie Kondo! 
+Hey everyone! I created this project to solve a problem we all face: that messy folder full of jumbled files. **FileFlow** automatically organizes everything, leaving your PC cleaner than Marie Kondo’s closet!
 
 <div align="center">
-  <img src="https://github.com/Jeffinp/file_organizer/blob/main/image/Screenshot_1044.png" alt="Interface Moderna" width="600">
-  <p><i>Interface limpa e moderna - até seu avô vai saber usar!</i></p>
+  <img src="https://github.com/Jeffinp/file_organizer/blob/main/image/Screenshot_1044.png" alt="Modern Interface" width="600">
+  <p><i>Clean and modern interface – even your grandpa will know how to use it!</i></p>
 </div>
 
 <div align="center">
-  <img src="https://github.com/Jeffinp/file_organizer/blob/main/image/Screenshot_1045.png" alt="Interface Moderna" width="600">
-  <p><i>Modo Escuro.</i></p>
+  <img src="https://github.com/Jeffinp/file_organizer/blob/main/image/Screenshot_1045.png" alt="Dark Mode" width="600">
+  <p><i>Dark Mode.</i></p>
 </div>
 
+## 💡 Why Use It?
 
-## 💡 Por que usar?
+- **Ninja-level organization** into categorized folders (documents, images, music, etc.)
+- **Duplicate detector** using SHA-256 hashing (it never duplicates an identical file!)
+- **Total security** with permission checks and file locking
+- **Modern interface** featuring dark mode, smooth animations, and visual feedback
+- **Detailed logs** so you know exactly what happened
 
-- **Organização ninja** em pastas categorizadas (documentos, imagens, músicas, etc)
-- **Detector de duplicatas** usando hash SHA-256 (não repete arquivo igual!)
-- **Segurança total** com verificação de permissões e lock de arquivos
-- **Interface moderna** com dark mode, animações suaves e feedback visual
-- **Logs detalhados** pra saber exatamente o que aconteceu
+## 🛠️ How It Works Under the Hood
 
-## 🛠️ Como Funciona por Baixo dos Panos
+### 🔍 Python Core
 
-### 🔍 Núcleo Python
 ```python
-# Exemplo do sistema anti-duplicatas
+# Example of the duplicate detection system
 def is_duplicate(file1, file2):
-    return calculate_hash(file1) == calculate_hash(file2)  # Comparação via SHA-256
-```
-- **Sistema de Travas**: Usa `threading.Lock` pra evitar que múltiplos processos meçam os arquivos
-- **Verificação de Permissões**: Testa leitura/escrita antes de qualquer operação
-- **Logging Avançado**: Gera logs rotativos (5MB cada) com info de threads e timestamps
-
-### 🌐 Interface Web
-- **Frontend**: HTML/CSS/JS com design responsivo e 60+ animações
-- **Backend**: Flask rodando localmente na porta 5000
-- **Bridge**: Webview cria janela desktop integrada com o Python
-
-## ⚙️ Tecnologias Usadas
-
-| Camada          | Ferramentas                                                                 |
-|-----------------|-----------------------------------------------------------------------------|
-| **Backend**     | Python 3.10+, Flask, hashlib, logging                                       |
-| **Frontend**    | HTML5, CSS3 (Custom Properties), JavaScript ES6+                           |
-| **Interface**   | Webview (para janela desktop), Font Awesome 6                              |
-| **Segurança**   | SHA-256, Verificação de permissões, File locking                           |
-
-## 🎮 Como Usar
-
-1. **Instalação Relâmpago** ⚡
-```bash
-git clone https://github.com/Jeffinp/file_organizer
-cd file_organizer
-pip install -r requirements.txt
+    return calculate_hash(file1) == calculate_hash(file2)  # Comparison via SHA-256
 ```
 
-2. **Rodando o Programa** 🚀
-```bash
-python app.py
-```
+- **Lock System**: Uses `threading.Lock` to prevent multiple processes from accessing the files simultaneously
+- **Permission Verification**: Checks read/write permissions before any operation
+- **Advanced Logging**: Generates rotating logs (5MB each) with thread info and timestamps
 
-3. **Passo a Passo Mágico** ✨
-   - Clique em "Procurar" e escolha a pasta
-   - Veja a prévia das categorias
-   - Clique em "Organizar" e assista a mágica acontecer!
+### 🌐 Web Interface
 
-## 🗂️ Sistema de Categorias
+- **Frontend**: HTML/CSS/JS with a responsive design and over 60 animations
+- **Backend**: Flask running locally on port 5000
+- **Bridge**: Webview creates an integrated desktop window with Python
 
-| Pasta         | Extensões Suportadas                                  |
-|---------------|-------------------------------------------------------|
-| **Imagens**   | .jpg, .png, .webp, .svg, .gif (+7 formatos)           |
-| **Documentos**| .pdf, .docx, .xlsx, .pptx, .txt (+10 formatos)        |
-| **Mídia**     | .mp3, .mp4, .mkv, .flac, .wav (+15 codecs)            |
-| **Códigos**   | .py, .js, .html, .css, .java (+8 linguagens)          |
-| **Outros**    | Qualquer extensão não listada                         |
+## ⚙️ Technologies Used
 
-## 🚨 E Se...?
+| Layer        | Tools                                                             |
+|--------------|-------------------------------------------------------------------|
+| **Backend**  | Python 3.10+, Flask, hashlib, logging                             |
+| **Frontend** | HTML5, CSS3 (Custom Properties), JavaScript ES6+                  |
+| **Interface**| Webview (for the desktop window), Font Awesome 6                  |
+| **Security** | SHA-256, Permission Verification, File Locking                    |
 
-- **Arquivo em uso?** → O programa detecta e pula temporariamente
-- **Sem permissão?** → Avisa claramente onde está o problema
-- **Erro desconhecido?** → Gera log detalhado com stack trace
+## 🎮 How to Use
 
-## 💡 Dicas Pro
+1. **Lightning-fast Installation** ⚡
+   ```bash
+   git clone https://github.com/Jeffinp/file_organizer
+   cd file_organizer
+   pip install -r requirements.txt
+   ```
 
-- Use **CTRL+CLICK** no campo de diretório para colar caminhos
-- **Duplo clique** nos itens recentes para seleção rápida
-- Tecla **ESC** fecha qualquer diálogo aberto
+2. **Running the Program** 🚀
+   ```bash
+   python app.py
+   ```
 
-## 📈 Próximos Passos
+3. **Step-by-Step Magic** ✨
+   - Click **"Browse"** and select the folder
+   - Preview the categories
+   - Click **"Organize"** and watch the magic happen!
 
-- [ ] Upload de arquivos via arrastar-e-soltar
-- [ ] Sistema de regras personalizadas
-- [ ] Suporte a cloud storage (Dropbox, Google Drive)
+## 🗂️ Categories System
+
+| Folder       | Supported Extensions                                    |
+|--------------|---------------------------------------------------------|
+| **Images**   | .jpg, .png, .webp, .svg, .gif (and 7 more formats)       |
+| **Documents**| .pdf, .docx, .xlsx, .pptx, .txt (and 10 more formats)    |
+| **Media**    | .mp3, .mp4, .mkv, .flac, .wav (and 15 more codecs)       |
+| **Code**     | .py, .js, .html, .css, .java (and support for 8 more languages) |
+| **Others**   | Any extension not listed                                |
+
+## 🚨 And If...?
+
+- **File in use?** → The program detects it and temporarily skips it
+- **No permission?** → It clearly alerts you to the issue
+- **Unknown error?** → It generates a detailed log with a stack trace
+
+## 💡 Pro Tips
+
+- Use **CTRL+CLICK** on the directory field to paste paths
+- **Double-click** recent items for quick selection
+- Press **ESC** to close any open dialog
+
+## 📈 Next Steps
+
+- [ ] Drag-and-drop file upload
+- [ ] Custom rules system
+- [ ] Cloud storage support (Dropbox, Google Drive)
 
 ---
 
-Quer ver como ficou na prática? Dá uma olhada no código e se achar algum bug ou tiver ideia massa, abre uma issue! 🐛💡
+Want to see it in action? Check out the code, and if you find any bugs or have a cool idea, open an issue! 🐛💡
