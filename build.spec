@@ -12,7 +12,7 @@ a = Analysis(
     ['app.py'],
     pathex=[],
     binaries=[],
-    datas=[('templates', 'templates')],  # Include the templates directory
+    datas=[('templates', 'templates')], 
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
