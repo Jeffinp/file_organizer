@@ -434,7 +434,6 @@
         // ================================
         // Configurações de Tradução
         // ================================
-        // Define os textos para os idiomas suportados (pt e en)
         const translations = {
             'pt': {
                 'title': 'FileFlow - Organizador Inteligente',
@@ -473,23 +472,22 @@
                 'organize_now': 'Organize Now'
             }
         };
-    
+
         // Atualiza os textos da interface conforme o idioma selecionado
         function updateText(lang) {
-            document.querySelectorAll('[data-i18n]').forEach(element => {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(element => {
                 const key = element.getAttribute('data-i18n');
                 if (translations[lang] && translations[lang][key]) {
                     if (element.tagName === 'INPUT') {
                         element.placeholder = translations[lang][key];
-                    } else if (element.tagName === 'SELECT') {
-                        // Tratamento específico para elementos SELECT, se necessário
                     } else {
                         element.textContent = translations[lang][key];
                     }
                 }
             });
         }
-    
+
         // Muda o idioma da aplicação e salva a preferência no localStorage
         function changeLanguage() {
             const selectedLanguage = document.getElementById('language-select').value;
@@ -497,7 +495,7 @@
             localStorage.setItem('language', selectedLanguage);
             updateText(selectedLanguage);
         }
-    
+
         // Carrega o idioma salvo ou define o padrão para 'pt'
         function loadLanguage() {
             const savedLanguage = localStorage.getItem('language') || 'pt';
@@ -505,51 +503,47 @@
             document.documentElement.setAttribute('lang', savedLanguage);
             updateText(savedLanguage);
         }
-    
+
         // ================================
         // Controle de Tema
         // ================================
-        // Alterna entre os temas claro e escuro e salva a preferência
         function toggleTheme() {
             const html = document.documentElement;
             const isDark = html.getAttribute('data-theme') === 'dark';
-            html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-            localStorage.setItem('theme', isDark ? 'light' : 'dark');
-            document.querySelector('.theme-toggle i').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+            const newTheme = isDark ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            document.querySelector('.theme-toggle i').className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
         }
-    
-        // Carrega o tema salvo ou define o padrão para 'light'
+
         function loadTheme() {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
             document.querySelector('.theme-toggle i').className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
         }
-    
+
         // ================================
         // Gerenciamento de Diretórios Recentes
         // ================================
-        // Constantes para chave de armazenamento e quantidade máxima de diretórios recentes
         const RECENT_DIRS_KEY = 'fileFlowRecentDirs';
         const MAX_RECENT_DIRS = 5;
-    
-        // Atualiza a lista de diretórios recentes exibida na interface
+
         function updateRecentDirsList() {
             const recentDirs = JSON.parse(localStorage.getItem(RECENT_DIRS_KEY) || '[]');
             const listElement = document.getElementById('recent-dirs-list');
             listElement.innerHTML = recentDirs.map(dir => `
-                <div class="recent-dir-item" tabindex="0" role="button">
-                    <i class="fas fa-history"></i>
-                    <span>${dir}</span>
-                </div>
-            `).join('');
+        <div class="recent-dir-item" tabindex="0" role="button">
+            <i class="fas fa-history"></i>
+            <span>${dir}</span>
+        </div>
+    `).join('');
             document.querySelectorAll('.recent-dir-item').forEach(item => {
                 item.addEventListener('click', () => {
                     document.getElementById('diretorio').value = item.querySelector('span').textContent;
                 });
             });
         }
-    
-        // Adiciona um diretório à lista de recentes e atualiza o armazenamento
+
         function addToRecentDirs(path) {
             const recentDirs = JSON.parse(localStorage.getItem(RECENT_DIRS_KEY) || '[]');
             const updatedDirs = [
@@ -558,11 +552,10 @@
             localStorage.setItem(RECENT_DIRS_KEY, JSON.stringify(updatedDirs));
             updateRecentDirsList();
         }
-    
+
         // ================================
         // Controle da Interface e Organização de Arquivos
         // ================================
-        // Organiza os arquivos do diretório informado, exibindo feedback de status
         async function organizarArquivos() {
             const diretorio = document.getElementById('diretorio').value.trim();
             const button = document.getElementById('organizar-btn');
@@ -590,8 +583,7 @@
                 toggleLoading(false, button);
             }
         }
-    
-        // Alterna o estado de carregamento do botão, atualizando ícone e texto
+
         function toggleLoading(isLoading, button) {
             if (!button) {
                 console.error("Botão 'button' é null dentro de toggleLoading!");
@@ -613,8 +605,7 @@
                 ? translations[document.documentElement.getAttribute('lang')]['status_organizing']
                 : translations[document.documentElement.getAttribute('lang')]['organize_now'];
         }
-    
-        // Exibe mensagens de status (sucesso ou erro) para o usuário
+
         function showStatus(message, type) {
             const statusElement = document.getElementById('status');
             if (!statusElement) {
@@ -623,18 +614,17 @@
             }
             statusElement.className = `status status--${type} show`;
             statusElement.innerHTML = `
-                <i class="status__icon ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-                ${message}
-            `;
+        <i class="status__icon ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        ${message}
+    `;
             setTimeout(() => {
                 statusElement.classList.remove('show');
             }, 5000);
         }
-    
+
         // ================================
         // Eventos e Integração com pywebview
         // ================================
-        // Configura eventos assim que o documento é carregado
         document.addEventListener('DOMContentLoaded', () => {
             loadTheme();
             loadLanguage();
@@ -643,8 +633,7 @@
                 if (e.key === 'Enter') organizarArquivos();
             });
         });
-    
-        // Integração com pywebview: seleciona um diretório via API
+
         async function selecionarDiretorio() {
             try {
                 const diretorio = await pywebview.api.choose_directory();
@@ -657,7 +646,7 @@
             }
         }
     </script>
-    
+
 </body>
 
 </html>
