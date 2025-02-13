@@ -351,10 +351,10 @@
             color: var(--text);
             cursor: pointer;
             transition: var(--transition);
-            -webkit-appearance: none; /* Remove appearance for iOS */
-            -moz-appearance: none; /* Remove appearance for Firefox */
-            appearance: none; /* Remove appearance for modern browsers */
-            padding-right: 2.5rem; /* Make space for the dropdown arrow */
+            -webkit-appearance: none; 
+            -moz-appearance: none;
+            appearance: none; 
+            padding-right: 2.5rem;
         }
 
         .lang-switcher select:hover,
@@ -364,11 +364,11 @@
         }
 
         .lang-switcher select::-ms-expand {
-            display: none; /* Hide default arrow in IE */
+            display: none; 
         }
 
         .lang-switcher::after {
-            content: '\f078'; /* Font Awesome chevron-down icon */
+            content: '\f078'; 
             font-family: 'Font Awesome 5 Free';
             font-weight: 900;
             position: absolute;
@@ -475,7 +475,7 @@
                     if (element.tagName === 'INPUT') {
                         element.placeholder = translations[lang][key];
                     } else if (element.tagName === 'SELECT') {
-                         // Handle options in select if needed, though in this example it's set on option tags directly
+                      
                     }
 
                     else {
@@ -547,7 +547,7 @@
         async function organizarArquivos() {
             const diretorio = document.getElementById('diretorio').value.trim();
             const button = document.getElementById('organizar-btn');
-            const statusElement = document.getElementById('status'); // Renomeado para evitar confusão com a função showStatus
+            const statusElement = document.getElementById('status'); 
             if (!diretorio) {
                 showStatus(translations[document.documentElement.getAttribute('lang')]['status_select_directory'], 'error');
                 return;
@@ -565,7 +565,7 @@
                 });
                 if (!response.ok) throw new Error(translations[document.documentElement.getAttribute('lang')]['status_server_error']);
                 const data = await response.json();
-                showStatus(`✅ ${data.message}`, 'success'); // Message from server is not translated here, assuming it's already in correct language or not user facing
+                showStatus(`✅ ${data.message}`, 'success');
                 addToRecentDirs(diretorio);
             } catch (error) {
                 showStatus(`❌ ${error.message || translations[document.documentElement.getAttribute('lang')]['status_connection_error']}`, 'error');
@@ -575,20 +575,20 @@
         }
 
         function toggleLoading(isLoading, button) {
-            console.log("toggleLoading chamado com button:", button); // DEBUG: Verifique o valor de 'button'
+            console.log("toggleLoading chamado com button:", button);
             if (!button) {
-                console.error("Botão 'button' é null dentro de toggleLoading!"); // DEBUG: Erro se button for null
-                return; // Importante: Saia da função para evitar erro!
+                console.error("Botão 'button' é null dentro de toggleLoading!"); 
+                return; 
             }
             const icon = button.querySelector('i');
             const text = button.querySelector('.button-text');
 
             if (!icon) {
-                console.error("Ícone 'i' não encontrado dentro do botão em toggleLoading!"); // DEBUG: Verifique se o ícone foi encontrado
+                console.error("Ícone 'i' não encontrado dentro do botão em toggleLoading!");
                 return;
             }
             if (!text) {
-                console.error("Elemento de texto '.button-text' não encontrado dentro do botão em toggleLoading!"); // DEBUG: Verifique se o texto foi encontrado
+                console.error("Elemento de texto '.button-text' não encontrado dentro do botão em toggleLoading!");
                 return;
             }
 
@@ -600,10 +600,10 @@
 
         function showStatus(message, type) {
             const statusElement = document.getElementById('status');
-            console.log("showStatus chamado com statusElement:", statusElement); // DEBUG: Verifique o valor de 'statusElement'
+            console.log("showStatus chamado com statusElement:", statusElement); 
             if (!statusElement) {
-                console.error("Elemento 'statusElement' é null dentro de showStatus!"); // DEBUG: Erro se statusElement for null
-                return; // Importante: Saia da função para evitar erro!
+                console.error("Elemento 'statusElement' é null dentro de showStatus!");
+                return;
             }
             statusElement.className = `status status--${type} show`;
             statusElement.innerHTML = `
@@ -632,7 +632,7 @@
                     showStatus(translations[document.documentElement.getAttribute('lang')]['status_directory_selected'], 'success');
                 }
             } catch (error) {
-                showStatus(`❌ ${error.message}`, 'error'); // Error from pywebview API - assuming it's in english and ok to show as is
+                showStatus(`❌ ${error.message}`, 'error');
             }
         }
     </script>
