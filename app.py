@@ -324,7 +324,7 @@ def main():
         window = webview.create_window(
             "File Organizer",
             app,
-            js_api=DirectoryAPI(),  # Make sure you are using the correct API
+            js_api=DirectoryAPI(), 
             width=800,
             height=600,
             min_size=(400, 300),
