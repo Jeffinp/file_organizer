@@ -8,13 +8,19 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* CSS Variables */
         :root {
+            /* Primary Colors */
             --primary: #6366f1;
             --primary-light: #818cf8;
             --primary-dark: #4f46e5;
-            --success: #10b981;
-            --error: #ef4444;
-            --warning: #f59e0b;
+
+            /* Accent Colors */
+            --accent: #ff6b6b;
+            --accent-light: #ff9e9e;
+            --accent-dark: #cc5555;
+
+            /* Neutral Colors */
             --background: #f8fafc;
             --surface: #ffffff;
             --text: #1e293b;
@@ -22,17 +28,35 @@
             --border: #e2e8f0;
             --hover-bg: #f1f5f9;
             --glass-bg: rgba(255, 255, 255, 0.7);
+
+            /* Status Colors */
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+
+            /* Shadows and Transitions */
             --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-            /* Variáveis do Dark Mode */
+            /* Dark Mode Variables */
             --dark-background: #0f172a;
             --dark-surface: #1e293b;
             --dark-text: #f8fafc;
             --dark-text-secondary: #94a3b8;
-            --text-secondary: #90a7c7;
+
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            --gradient-accent: linear-gradient(135deg, var(--accent), var(--accent-dark));
+
+            /* Fonts */
+            --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-size-base: 16px;
+            --font-size-large: 1.25rem;
+            --font-size-small: 0.875rem;
         }
 
+        /* Reset */
         * {
             margin: 0;
             padding: 0;
@@ -40,8 +64,9 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* Body */
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: var(--font-family);
             background: radial-gradient(circle at top right, #eef2ff, var(--background));
             min-height: 100vh;
             display: grid;
@@ -51,7 +76,28 @@
             transition: var(--transition);
         }
 
-        /* Container Moderno com Vidro */
+        /* Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+            border: 3px solid var(--background);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--surface);
+            border-radius: 10px;
+        }
+
+        /* Container */
         .container {
             background: var(--glass-bg);
             backdrop-filter: blur(16px) saturate(180%);
@@ -75,10 +121,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg,
-                    rgba(99, 102, 241, 0.1),
-                    rgba(255, 255, 255, 0.2),
-                    rgba(79, 70, 229, 0.1));
+            background: linear-gradient(45deg, rgba(99, 102, 241, 0.1), rgba(255, 255, 255, 0.2), rgba(79, 70, 229, 0.1));
             animation: rotate 20s linear infinite;
             z-index: -1;
         }
@@ -101,8 +144,8 @@
         }
 
         h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            font-size: var(--font-size-large);
+            background: var(--gradient-primary);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -113,7 +156,7 @@
 
         .subtitle {
             color: var(--text-secondary);
-            font-size: 1rem;
+            font-size: var(--font-size-small);
             line-height: 1.5;
             max-width: 320px;
             margin: 0 auto;
@@ -146,7 +189,7 @@
             padding: 1rem 1rem 1rem 3rem;
             border: 2px solid var(--border);
             border-radius: 12px;
-            font-size: 1rem;
+            font-size: var(--font-size-base);
             background: rgba(255, 255, 255, 0.9);
             color: var(--text);
             transition: var(--transition);
@@ -164,7 +207,7 @@
             transform: translateY(-50%) scale(1.1);
         }
 
-        /* Botões */
+        /* Buttons */
         .button {
             display: inline-flex;
             align-items: center;
@@ -181,7 +224,7 @@
         }
 
         .button--primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: var(--gradient-primary);
             color: white;
             box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1);
         }
@@ -240,7 +283,7 @@
         }
 
         .recent-dirs__title {
-            font-size: 0.875rem;
+            font-size: var(--font-size-small);
             color: var(--text-secondary);
             margin-bottom: 1rem;
             font-weight: 500;
@@ -278,7 +321,7 @@
             color: var(--dark-text);
         }
 
-        /* Animações */
+        /* Animations */
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -305,7 +348,7 @@
             }
         }
 
-        /* Tema Switch */
+        /* Theme Switch */
         .theme-toggle {
             position: absolute;
             top: 1.5rem;
@@ -326,7 +369,7 @@
             transform: rotate(180deg) scale(1.1);
         }
 
-        /* Responsividade */
+        /* Responsiveness */
         @media (max-width: 480px) {
             .container {
                 padding: 1.5rem;
@@ -334,7 +377,7 @@
             }
 
             h1 {
-                font-size: 2rem;
+                font-size: var(--font-size-base);
             }
         }
 
@@ -430,6 +473,7 @@
             <div id="recent-dirs-list" class="recent-dirs__list"></div>
         </div>
     </div>
+
     <script>
         // ================================
         // Configurações de Tradução

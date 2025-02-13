@@ -9,7 +9,7 @@ import threading
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Generator
 
 from flask import Flask, jsonify, render_template, request
 import webview
@@ -103,12 +103,12 @@ def configure_logging() -> logging.Logger:
         logger.addHandler(console_handler)
         logger.addHandler(file_handler)
 
-    except Exception as error:
+    except Exception as err:
         logging.basicConfig(
             level=logging.DEBUG,
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
-        logger.error("Failed to configure logging: %s", error)
+        logger.error("Failed to configure logging: %s", err)
 
     return logger
 
@@ -118,7 +118,7 @@ file_locks: Dict[str, threading.Lock] = {}
 
 
 @contextmanager
-def file_lock(filepath: str):
+def file_lock(filepath: str) -> Generator[None, None, None]:
     """Thread-safe file operation context manager."""
     lock = file_locks.setdefault(filepath, threading.Lock())
     try:
@@ -145,8 +145,8 @@ class FileOrganizer:
                 while chunk := file.read(FILE_CHUNK_SIZE):
                     sha256.update(chunk)
             return sha256.hexdigest()
-        except Exception as error:
-            logger.error("Error calculating hash for %s: %s", filepath, error)
+        except OSError as err:
+            logger.error("Error calculating hash for %s: %s", filepath, err)
             return ""
 
     @staticmethod
@@ -162,13 +162,13 @@ class FileOrganizer:
             try:
                 test_file.touch()
                 test_file.unlink()
-            except OSError as error:
-                return False, f"File creation test failed: {error}"
+            except OSError as err:
+                return False, f"File creation test failed: {err}"
 
             return True, "Valid permissions"
-        except Exception as error:
-            logger.error("Permission check failed: %s", error)
-            return False, str(error)
+        except OSError as err:
+            logger.error("Permission check failed: %s", err)
+            return False, str(err)
 
     @staticmethod
     def organize_files(directory: str) -> Dict:
@@ -214,8 +214,8 @@ class FileOrganizer:
                         file.rename(dest_path)
                         result["moved"] += 1
 
-                except Exception as error:
-                    error_msg = f"{file.name}: {str(error)}"
+                except OSError as err:
+                    error_msg = f"{file.name}: {str(err)}"
                     logger.error(error_msg)
                     result["errors"].append(error_msg)
 
@@ -224,9 +224,9 @@ class FileOrganizer:
             if result["errors"]:
                 result["message"] += f" with {len(result['errors'])} errors"
 
-        except Exception as error:
+        except OSError as err:
             logger.exception("Organization failed")
-            result["message"] = f"Critical error: {str(error)}"
+            result["message"] = f"Critical error: {str(err)}"
 
         return result
 
@@ -263,8 +263,8 @@ class DirectoryAPI:
             if selected:
                 return self.validate_directory(Path(selected[0]))
             return None
-        except Exception as error:
-            logger.error("Directory selection failed: %s", error)
+        except OSError as err:
+            logger.error("Directory selection failed: %s", err)
             return None
 
     def validate_directory(self, path: Path) -> Optional[str]:
@@ -309,9 +309,9 @@ def organizar_arquivos():
             status_code,
         )
 
-    except Exception as error:
-        logger.error("Unhandled error: %s", str(error))
-        return jsonify({"error": "Internal server error", "details": str(error)}), 500
+    except OSError as err:
+        logger.error("Unhandled error: %s", str(err))
+        return jsonify({"error": "Internal server error", "details": str(err)}), 500
 
 
 def main():
@@ -324,7 +324,7 @@ def main():
         window = webview.create_window(
             "File Organizer",
             app,
-            js_api=DirectoryAPI(), 
+            js_api=DirectoryAPI(),
             width=800,
             height=600,
             min_size=(400, 300),
@@ -332,8 +332,8 @@ def main():
         window.events.closed += lambda: logger.info("Application closed")
         webview.start()
 
-    except Exception as error:
-        logger.critical("Application failed to start: %s", error)
+    except OSError as err:
+        logger.critical("Application failed to start: %s", err)
         sys.exit(1)
 
 
